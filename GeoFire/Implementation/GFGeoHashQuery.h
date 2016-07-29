@@ -18,6 +18,7 @@
 @property (nonatomic, strong, readonly) NSString *endValue;
 
 + (NSSet *)queriesForLocation:(CLLocationCoordinate2D)location radius:(double)radius;
++ (NSSet <NSString *> *)rda_queriesForRegion:(MKCoordinateRegion)region matrixSize:(int)size;
 + (NSSet *)queriesForRegion:(MKCoordinateRegion)region;
 
 - (BOOL)containsGeoHash:(GFGeoHash *)hash;

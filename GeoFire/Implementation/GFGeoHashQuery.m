@@ -209,6 +209,34 @@
     return [GFGeoHashQuery joinQueries:queries];
 }
 
++ (NSSet <NSString *> *)rda_queriesForRegion:(MKCoordinateRegion)region matrixSize:(int)size {
+    NSUInteger bits = [GFGeoHashQuery bitsForRegion:region];
+    NSUInteger geoHashPrecision = ((bits-3)/BITS_PER_GEOHASH_CHAR)+3;
+    NSMutableSet *queries = [NSMutableSet set];
+    void (^addQuery)(CLLocationDegrees, CLLocationDegrees) = ^(CLLocationDegrees lat, CLLocationDegrees lng) {
+        GFGeoHash *geoHash = [GFGeoHash newWithLocation:CLLocationCoordinate2DMake(lat, lng)
+                                              precision:geoHashPrecision];
+        [queries addObject:[GFGeoHashQuery geoHashQueryWithGeoHash:geoHash bits:bits]];
+    };
+    CLLocationDegrees latitude14th = region.span.latitudeDelta / size;
+    CLLocationDegrees longitude14th = region.span.longitudeDelta / size;
+    CLLocationDegrees latitudeSouth = region.center.latitude - region.span.latitudeDelta/2;
+    CLLocationDegrees longitudeWest = [GFGeoHashQuery
+                                       wrapLongitude:(region.center.longitude - region.span.longitudeDelta/2)];
+    NSMutableSet *hashes = [NSMutableSet new];
+    for (int longitudeStep = 1; longitudeStep <= size; longitudeStep++) {
+        for (int latitudeStep = 1; latitudeStep <= size; latitudeStep++) {
+            CLLocationDegrees latitude = latitudeSouth + (latitude14th * latitudeStep);
+            CLLocationDegrees longitude = longitudeWest + (longitude14th * longitudeStep);
+            GFGeoHash *geoHash = [GFGeoHash newWithLocation:CLLocationCoordinate2DMake(latitude, longitude)
+                                                  precision:geoHashPrecision];
+            [hashes addObject:geoHash.geoHashValue];
+        }
+    }
+
+    return [hashes copy];
+}
+
 + (NSSet *)queriesForLocation:(CLLocationCoordinate2D)center radius:(double)radius
 {
     CLLocationDegrees latitudeDelta = radius/METERS_PER_DEGREE_LATITUDE;
